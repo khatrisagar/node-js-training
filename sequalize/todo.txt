@@ -1,0 +1,21 @@
+```
+12-06-2023
+Technology : Vue Js & Node js 
+
+sequelize
+    -models basic
+    -models instances
+    -model queries
+        -select 
+        -grouping 
+        -order
+        -pagination
+        -aggregate function
+        -increment and decrement
+    -model query finder
+        -findAll
+        -findByPk
+        -findOrCreate
+        -findAndCountAlll
+    - getters, setters, virtual Fields
+```

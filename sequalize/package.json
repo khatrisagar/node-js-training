@@ -1,0 +1,21 @@
+{
+  "name": "sequalize",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {
+    "faker": "^5.5.3",
+    "sequelize-cli": "^6.6.1"
+  },
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.3.3",
+    "sequelize": "^6.32.0"
+  }
+}
