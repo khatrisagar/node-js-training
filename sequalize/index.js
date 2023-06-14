@@ -3,8 +3,9 @@ const app = express();
 const PORT = 5555;
 
 const db = require("./models");
-
 const userRoutes = require("./routes/user/user.route");
+
+app.use(express.json());
 app.use(userRoutes);
 
 // app.get("/", async (req, res) => {

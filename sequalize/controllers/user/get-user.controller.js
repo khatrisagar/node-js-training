@@ -1,6 +1,6 @@
 const db = require("../../models");
 
-const getuser = async (req, res) => {
+const getUser = async (req, res) => {
   try {
     const users = await db.User.findAll();
     res.json(users);
@@ -9,4 +9,4 @@ const getuser = async (req, res) => {
   }
 };
 
-module.exports = { getuser };
+module.exports = { getUser };
