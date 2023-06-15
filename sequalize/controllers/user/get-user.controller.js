@@ -1,6 +1,6 @@
 const db = require("../../models");
 
-const getUser = async (req, res) => {
+const getUsers = async (req, res) => {
   try {
     const users = await db.User.findAll();
     res.json(users);
@@ -9,4 +9,15 @@ const getUser = async (req, res) => {
   }
 };
 
-module.exports = { getUser };
+const getUserWithEducation = async (req, res) => {
+  try {
+    const user = await db.User.findAll({
+      include: db.Education,
+    });
+    res.json(user);
+  } catch (error) {
+    res.json(error);
+  }
+};
+
+module.exports = { getUsers, getUserWithEducation };
