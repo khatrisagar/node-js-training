@@ -8,7 +8,22 @@ const getUsers = async (req, res) => {
     res.json(error);
   }
 };
+// lazy laoding
 
+const getUser = async (req, res) => {
+  try {
+    const data = await db.User.findOne({
+      where: { id: req.params.id },
+    });
+    // called when it is neccesary
+    const response = await data.getEducation();
+    res.json(data);
+  } catch (error) {
+    res.json(error);
+  }
+};
+
+// eager loading created using  include
 const getUserWithEducation = async (req, res) => {
   try {
     const user = await db.User.findAll({
@@ -20,4 +35,4 @@ const getUserWithEducation = async (req, res) => {
   }
 };
 
-module.exports = { getUsers, getUserWithEducation };
+module.exports = { getUsers, getUser, getUserWithEducation };

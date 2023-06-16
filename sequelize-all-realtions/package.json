@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.3.5",
+    "sequelize": "^6.32.0"
+  },
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "name": "sequelize-relations",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "sequelize-cli": "^6.6.1"
+  }
+}
