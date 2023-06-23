@@ -7,6 +7,8 @@ const {
   getItemsCountService,
 } = require("../../services/item.service");
 
+const { parseObject } = require("../../utils/helpers/query-parser.helper");
+
 const getItem = async (req, res) => {
   try {
     const item = await getItemService(req.params.id);
@@ -32,9 +34,31 @@ const getSellerItems = async (req, res) => {
 
 const getItems = async (req, res) => {
   try {
-    const allowedSearchFielsd = ["name", "price", "minPrice", "maxPrice"];
+    const allowedOptionSearchFields = ["name", "price", "minPrice", "maxPrice"];
+    const allowedOptionOrderFields = [
+      "id",
+      "name",
+      "price",
+      "minPrice",
+      "maxPrice",
+    ];
+    const allowedOptionOrderValues = ["ASC", "DESC"];
 
-    const order = req.query.order ? JSON.parse(req.query.order) : { id: "ASC" };
+    const order =
+      parseObject(req.query.order) &&
+      allowedOptionOrderFields.includes(
+        Object.keys(parseObject(req.query.order))[0]
+      ) &&
+      allowedOptionOrderValues.includes(
+        Object.values(parseObject(req.query.order))[0]
+      )
+        ? parseObject(req.query.order)
+        : { id: "ASC" };
+    console.log(
+      "order",
+      order,
+      allowedOptionOrderFields.includes(Object.keys(req.query.order)[0])
+    );
 
     const limit = req.query.limit ? parseInt(req.query.limit) : 10;
 
@@ -42,11 +66,6 @@ const getItems = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    console.log("searchQuery");
-    const searchQuery = req.query.search
-      ? JSON.parse(JSON.stringify(req.query.search))
-      : null;
-    console.log(searchQuery);
     let searchCondition = [];
 
     const apiOptions = {
@@ -57,10 +76,10 @@ const getItems = async (req, res) => {
         [Op.or]: searchCondition,
       },
     };
-    if (searchQuery) {
+    if (parseObject(req.query.search)) {
+      const searchQuery = parseObject(req.query.search);
       for (let condition in searchQuery) {
-        console.log("condition", condition);
-        if (allowedSearchFielsd.includes(condition)) {
+        if (allowedOptionSearchFields.includes(condition)) {
           searchCondition.push({
             [condition]: {
               [Op.like]: `${searchQuery[condition] + "%"}`,
