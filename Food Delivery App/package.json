@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.4.0",
+    "sequelize": "^6.32.1"
+  },
+  "devDependencies": {
+    "sequelize-cli": "^6.6.1"
+  },
+  "scripts": {
+    "dev": "nodemon ./src/app.js"
+  },
+  "name": "food-delivery",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT"
+}
