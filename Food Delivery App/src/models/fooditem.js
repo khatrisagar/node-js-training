@@ -15,14 +15,18 @@ module.exports = (sequelize, DataTypes) => {
       FoodItem.belongsTo(models.FoodCategory, {
         as: "category",
       });
+      FoodItem.belongsTo(models.User, {
+        as: "supplier",
+      });
     }
   }
   FoodItem.init(
     {
       name: DataTypes.STRING,
-      categoryId: DataTypes.INTEGER,
+      // categoryId: DataTypes.INTEGER,
       name: DataTypes.STRING,
       price: DataTypes.INTEGER,
+      // supplierId: DataTypes.INTEGER,
     },
     {
       sequelize,

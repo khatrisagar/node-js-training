@@ -21,13 +21,6 @@ module.exports = {
           key: "id",
         },
       },
-      foodSupplierId: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: "foodSuppliers",
-          key: "id",
-        },
-      },
       name: {
         type: Sequelize.STRING,
       },

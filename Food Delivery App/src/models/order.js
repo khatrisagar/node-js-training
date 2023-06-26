@@ -6,6 +6,13 @@ module.exports = (sequelize, DataTypes) => {
       Order.belongsToMany(models.FoodItem, {
         through: "OrderItems",
         foreignKey: "orderId",
+        as: "items",
+      });
+      Order.hasOne(models.PaymentInfo, { as: "payment", foreignKey: "id" });
+      Order.belongsTo(models.User, { as: "customer", foreignKey: "userId" });
+      Order.belongsTo(models.User, {
+        as: "deliveryAgent",
+        foreignKey: "deliveryAgentId",
       });
     }
   }
