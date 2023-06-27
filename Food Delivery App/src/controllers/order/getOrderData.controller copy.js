@@ -5,22 +5,24 @@ const {
   PaymentInfo,
   FoodCategory,
 } = require("../../models");
-const { Op } = require("sequelize");
+const { Op, Sequelize } = require("sequelize");
+const db = require("../../models");
 
 const getOrdersData = async (req, res) => {
   try {
     const searchItem = req.query?.search ?? "";
     const allowedSearchFields = [
       "userAddress",
-      "$items.name$",
-      "$items.price$",
+      // `$items.price$`,
+      // "$itemName$",
       "$customer.name$",
       "$customer.email$",
     ];
+
     const searchCondition = [];
     allowedSearchFields.forEach((field) =>
       searchCondition.push({
-        [field]: { [Op.like]: "%" + searchItem + "%" },
+        [field]: { [Op.like]: searchItem + "%" },
       })
     );
 
@@ -30,11 +32,18 @@ const getOrdersData = async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    const orders = await Order.findAll({
-      where: {
-        [Op.or]: searchCondition,
-      },
-      attributes: ["id", "userAddress", "createdAt", "updatedAt"],
+    const { count, rows } = await Order.findAndCountAll({
+      distinct: true,
+
+      raw: true,
+
+      // attributes: [
+      //   "id",
+      //   "userAddress",
+      //   "createdAt",
+      //   "updatedAt",
+      //   // [Sequelize.col("customer.name"), "itemName"],
+      // ],
       include: [
         {
           attributes: ["id", "name", "surname", "email", "contact"],
@@ -49,11 +58,20 @@ const getOrdersData = async (req, res) => {
           required: true,
         },
         {
-          // attributes: ["id", "name", "price"],
+          attributes: [
+            "id",
+            "name",
+            "price",
+            // [Sequelize.col(".quantity"), "quantity"],
+          ],
           model: FoodItem,
           as: "items",
-          required: true,
-          through: { attributes: ["quantity"], as: "orderItem" },
+          required: false,
+          nest: true,
+          through: {
+            // attributes: ["quantity"],
+            as: "orderItem",
+          },
           include: [
             {
               attributes: ["id", "name"],
@@ -76,15 +94,25 @@ const getOrdersData = async (req, res) => {
           required: true,
         },
       ],
+      where: {
+        [Op.or]: searchCondition,
+      },
+      // where: {
+      //   [Op.or]: [
+      //     {
+      //       $association: Order.associations.items,
+      //       where: {
+      //         price: 600,
+      //       },
+      //     },
+      //   ],
+      // },
       offset: offset,
       limit: limit,
       order: [["id", "ASC"]],
-      subQuery: false,
-      distinct: true,
     });
-
-    res.json(orders);
-    // res.status(200).json({ count, skip: offset, page, limit, data: rows });
+    console.log("aaaaaaaaaaaaaaaaa");
+    res.status(200).json({ count, skip: offset, page, limit, data: rows });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: error.message });
@@ -92,56 +120,3 @@ const getOrdersData = async (req, res) => {
 };
 
 module.exports = { getOrdersData };
-
-// const { count, rows } = await Order.findAndCountAll({
-//   where: {
-//     [Op.or]: searchCondition,
-//   },
-//   attributes: ["id", "userAddress", "createdAt", "updatedAt"],
-//   include: [
-//     {
-//       attributes: ["id", "name", "surname", "email", "contact"],
-//       model: User,
-//       as: "customer",
-//       required: true,
-//     },
-//     {
-//       attributes: ["id", "name", "surname", "email", "contact"],
-//       model: User,
-//       as: "deliveryAgent",
-//       required: true,
-//     },
-//     {
-//       // attributes: ["id", "name", "price"],
-//       model: FoodItem,
-//       as: "items",
-//       required: true,
-//       through: { attributes: ["quantity"], as: "orderItem" },
-//       include: [
-//         {
-//           attributes: ["id", "name"],
-//           model: FoodCategory,
-//           as: "category",
-//           required: true,
-//         },
-//         {
-//           attributes: ["id", "name", "surname", "email", "contact"],
-//           model: User,
-//           as: "supplier",
-//           required: true,
-//         },
-//       ],
-//     },
-//     {
-//       model: PaymentInfo,
-//       attributes: ["id", "paymnetType", "amount", "createdAt", "updatedAt"],
-//       as: "payment",
-//       required: true,
-//     },
-//   ],
-//   offset: offset,
-//   limit: limit,
-//   order: [["id", "ASC"]],
-//   distinct: true,
-//   subQuery: false,
-// });

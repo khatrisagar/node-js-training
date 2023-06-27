@@ -4,20 +4,21 @@ const { Op, Sequelize } = require("sequelize");
 const getFoodItems = async (req, res) => {
   try {
     const searchItem = req.query?.search;
-    // const allowedSearchFields = [
-    //   "name",
-    //   "price",
-    //   "$category.name$",
-    //   "$supplier.name$",
-    //   "$supplier.address$",
-    // ];
-    // const searchCondition = [];
-    // allowedSearchFields.forEach((field) =>
-    //   searchCondition.push({
-    //     [field]: { [Op.like]: searchItem + "%" },
-    //   })
-    // );
-    // console.log(searchCondition);
+    const allowedSearchFields = [
+      // "name",
+      // "price",
+      "$items.price$",
+      // "$category.name$",
+      // "$supplier.name$",
+      // "$supplier.address$",
+    ];
+    const searchCondition = [];
+    allowedSearchFields.forEach((field) =>
+      searchCondition.push({
+        [field]: { [Op.like]: searchItem + "%" },
+      })
+    );
+    console.log(searchCondition);
     // const items = await db.FoodItem.findAll({
     //   where: {
     //     [Op.or]: searchCondition,
@@ -36,6 +37,10 @@ const getFoodItems = async (req, res) => {
     //   ],
     // });
     const items = await db.Order.findAll({
+      where: {
+        [Op.or]: searchCondition,
+      },
+      // raw: true,
       include: [
         {
           model: db.FoodItem,

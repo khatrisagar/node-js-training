@@ -5,39 +5,40 @@ const {
   PaymentInfo,
   FoodCategory,
 } = require("../../models");
-const { Op } = require("sequelize");
+const { Op, Sequelize, json } = require("sequelize");
+const db = require("../../models");
 
 const getOrdersData = async (req, res) => {
   try {
     const searchItem = req.query?.search ?? "";
     const allowedSearchFields = [
-      "userAddress",
-      // "$items.name$",
-      // "$items.price$",
+      "id",
       "$customer.name$",
+      "$customer.contact$",
       "$customer.email$",
+      "$deliveryAgent.name$",
+      "$deliveryAgent.email$",
+      "$payment.paymnetType$",
+      "$payment.amount$",
     ];
 
     const searchCondition = [];
     allowedSearchFields.forEach((field) =>
       searchCondition.push({
-        [field]: { [Op.like]: "%" + searchItem + "%" },
+        [field]: { [Op.like]: searchItem + "%" },
       })
     );
 
     const limit = req.query.limit ? parseInt(req.query.limit) : 3;
 
     const page = req.query.page ? parseInt(req.query.page) : 1;
-
+    const order = req.query.order ? JSON.parse(req.query.order) : { id: "ASC" };
+    console.log("Orderrrrrrr", order);
     const offset = (page - 1) * limit;
 
     const { count, rows } = await Order.findAndCountAll({
       distinct: true,
-      // subQuery: false,
-      // where: {
-      //   [Op.or]: searchCondition,
-      // },
-      // raw: true,
+
       attributes: ["id", "userAddress", "createdAt", "updatedAt"],
       include: [
         {
@@ -56,7 +57,6 @@ const getOrdersData = async (req, res) => {
           attributes: ["id", "name", "price"],
           model: FoodItem,
           as: "items",
-          required: false,
           through: {
             attributes: ["quantity"],
             as: "orderItem",
@@ -83,11 +83,17 @@ const getOrdersData = async (req, res) => {
           required: true,
         },
       ],
+      where: {
+        [Op.or]: [...searchCondition],
+      },
+
       offset: offset,
       limit: limit,
-      order: [["id", "ASC"]],
+      // order: Object.entries(order),
+      // order: [[Sequelize.col("customer.name"), "DESC"]],
+      // order: [["customer", "name", "DESC"]],
+      // order: [[{ model: User, as: "customer" }, "name", "DESC"]],
     });
-    console.log("aaaaaaaaaaaaaaaaa");
     res.status(200).json({ count, skip: offset, page, limit, data: rows });
   } catch (error) {
     console.log(error);
