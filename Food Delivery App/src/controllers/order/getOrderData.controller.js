@@ -5,7 +5,7 @@ const {
   PaymentInfo,
   FoodCategory,
 } = require("../../models");
-const { Op, Sequelize, json } = require("sequelize");
+const { Op, Sequelize } = require("sequelize");
 const db = require("../../models");
 
 const getOrdersData = async (req, res) => {
@@ -14,12 +14,13 @@ const getOrdersData = async (req, res) => {
     const allowedSearchFields = [
       "id",
       "$customer.name$",
-      "$customer.contact$",
-      "$customer.email$",
-      "$deliveryAgent.name$",
-      "$deliveryAgent.email$",
-      "$payment.paymnetType$",
-      "$payment.amount$",
+      // "$customer.contact$",
+      // "$customer.email$",
+      // "$deliveryAgent.name$",
+      // "$deliveryAgent.contact$",
+      // "$deliveryAgent.email$",
+      // "$payment.paymnetType$",
+      // "$payment.amount$",
     ];
 
     const searchCondition = [];
@@ -29,7 +30,7 @@ const getOrdersData = async (req, res) => {
       })
     );
 
-    const limit = req.query.limit ? parseInt(req.query.limit) : 3;
+    const limit = req.query.limit ? parseInt(req.query.limit) : 5;
 
     const page = req.query.page ? parseInt(req.query.page) : 1;
     const order = req.query.order ? JSON.parse(req.query.order) : { id: "ASC" };
@@ -38,6 +39,7 @@ const getOrdersData = async (req, res) => {
 
     const { count, rows } = await Order.findAndCountAll({
       distinct: true,
+      logging: false,
 
       attributes: ["id", "userAddress", "createdAt", "updatedAt"],
       include: [
@@ -47,6 +49,7 @@ const getOrdersData = async (req, res) => {
           as: "customer",
           required: true,
         },
+
         {
           attributes: ["id", "name", "surname", "email", "contact"],
           model: User,
@@ -84,16 +87,29 @@ const getOrdersData = async (req, res) => {
         },
       ],
       where: {
-        [Op.or]: [...searchCondition],
+        [Op.or]: [
+          ...searchCondition,
+          // {
+          //   $association: Order.associations.customer,
+          //   where: {
+          //     name: "ravi",
+          //   },
+          // },
+        ],
       },
 
       offset: offset,
       limit: limit,
       // order: Object.entries(order),
-      // order: [[Sequelize.col("customer.name"), "DESC"]],
+      // order: [["id", "ASC"]],
+      // order: [[{ model: User, as: "customer" }, Sequelize.col("name"), "DESC"]],
       // order: [["customer", "name", "DESC"]],
-      // order: [[{ model: User, as: "customer" }, "name", "DESC"]],
+      // order: [
+      //   [{ model: User, as: "customer" }, Sequelize.literal("name DESC")],
+      // ],
+      // order: [[{ model: User, as: "customer" }, "name", "ASC"]],
     });
+
     res.status(200).json({ count, skip: offset, page, limit, data: rows });
   } catch (error) {
     console.log(error);

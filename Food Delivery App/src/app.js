@@ -4,6 +4,7 @@ const PORT = 9999;
 const cors = require("cors");
 
 app.use(cors());
+app.use(express.json());
 
 const customerRoutes = require("./routes/customer/customer.route.js");
 app.use("/api/items", customerRoutes);
