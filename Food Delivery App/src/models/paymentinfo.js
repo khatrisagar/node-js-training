@@ -13,7 +13,11 @@ module.exports = (sequelize, DataTypes) => {
   }
   PaymentInfo.init(
     {
-      orderId: DataTypes.INTEGER,
+      orderId: {
+        type: DataTypes.INTEGER,
+        references: "Orders",
+        key: "id",
+      },
       paymnetType: DataTypes.STRING,
       amount: DataTypes.INTEGER,
     },

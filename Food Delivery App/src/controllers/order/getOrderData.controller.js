@@ -8,112 +8,128 @@ const {
 const { Op, Sequelize } = require("sequelize");
 const db = require("../../models");
 
+const JsonParser = (string) => {
+  try {
+    return JSON.parse(string);
+  } catch (error) {
+    return null;
+  }
+};
+
+const sortOrders = (query, allowField, modelName) => {
+  if (JsonParser(query)) {
+    const sort = Object.entries(JsonParser(query))[0];
+    console.log(
+      "sssssss",
+      allowField,
+      allowField.includes(sort[0]),
+      ["ASC", "DESC", "asc", "desc"].includes(sort[1])
+    );
+    if (
+      allowField.includes(sort[0]) &&
+      ["ASC", "DESC", "asc", "desc"].includes(sort[1])
+    ) {
+      console.log("sddd");
+      return [[...sort[0].split("."), sort[1]]];
+    }
+  }
+  return [];
+};
+
 const getOrdersData = async (req, res) => {
   try {
     const searchItem = req.query?.search ?? "";
     const allowedSearchFields = [
       "id",
       "$customer.name$",
-      // "$customer.contact$",
-      // "$customer.email$",
-      // "$deliveryAgent.name$",
-      // "$deliveryAgent.contact$",
-      // "$deliveryAgent.email$",
-      // "$payment.paymnetType$",
-      // "$payment.amount$",
+      "$deliveryAgent.id$",
+      "$deliveryAgent.name$",
+      "$deliveryAgent.surname$",
+      "$deliveryAgent.surname$",
+      "$payment.paymnetType$",
+      // "price",
+      // "$items.price$",
     ];
-
+    const allowSortFields = [
+      "id",
+      "createdAt",
+      "customer.name",
+      "customer.surname",
+      "customer.email",
+      "deliveryAgent.name",
+      "deliveryAgent.surname",
+      "deliveryAgent.email",
+      "payment.paymnetType",
+      "payment.amount",
+    ];
     const searchCondition = [];
     allowedSearchFields.forEach((field) =>
       searchCondition.push({
-        [field]: { [Op.like]: searchItem + "%" },
+        [field]: { [Op.like]: "%" + searchItem + "%" },
       })
     );
-
     const limit = req.query.limit ? parseInt(req.query.limit) : 5;
 
     const page = req.query.page ? parseInt(req.query.page) : 1;
-    const order = req.query.order ? JSON.parse(req.query.order) : { id: "ASC" };
-    console.log("Orderrrrrrr", order);
+    const order = sortOrders(req.query.order, allowSortFields);
     const offset = (page - 1) * limit;
 
-    const { count, rows } = await Order.findAndCountAll({
+    const { count, rows } = await db.Order.findAndCountAll({
       distinct: true,
       logging: false,
-
+      subQuery: false,
       attributes: ["id", "userAddress", "createdAt", "updatedAt"],
+      where: {
+        [Op.or]: searchCondition,
+      },
+      order: order,
       include: [
         {
-          attributes: ["id", "name", "surname", "email", "contact"],
-          model: User,
+          model: db.User,
           as: "customer",
-          required: true,
-        },
-
-        {
           attributes: ["id", "name", "surname", "email", "contact"],
-          model: User,
+        },
+        {
+          model: db.User,
           as: "deliveryAgent",
-          required: true,
+          attributes: ["id", "name", "surname", "email", "contact"],
         },
+        // {
+        //   model: db.FoodItem,
+        //   as: "items",
+        //   // separate: true,
+        //   attributes: ["id", "name", "price"],
+        //   through: {
+        //     as: "orderItem",
+        //     attributes: ["quantity"],
+        //   },
+        //   include: [
+        //     {
+        //       model: db.FoodCategory,
+        //       as: "category",
+        //       attributes: ["id", "name"],
+        //     },
+        //     {
+        //       model: db.User,
+        //       as: "supplier",
+        //       attributes: ["id", "name", "surname", "email", "contact"],
+        //     },
+        //   ],
+        // },
         {
-          attributes: ["id", "name", "price"],
-          model: FoodItem,
-          as: "items",
-          through: {
-            attributes: ["quantity"],
-            as: "orderItem",
-          },
-          include: [
-            {
-              attributes: ["id", "name"],
-              model: FoodCategory,
-              as: "category",
-              required: true,
-            },
-            {
-              attributes: ["id", "name", "surname", "email", "contact"],
-              model: User,
-              as: "supplier",
-              required: true,
-            },
-          ],
-        },
-        {
-          model: PaymentInfo,
-          attributes: ["id", "paymnetType", "amount", "createdAt", "updatedAt"],
+          model: db.PaymentInfo,
           as: "payment",
-          required: true,
+          attributes: ["id", "paymnetType", "amount", "createdAt", "updatedAt"],
         },
       ],
-      where: {
-        [Op.or]: [
-          ...searchCondition,
-          // {
-          //   $association: Order.associations.customer,
-          //   where: {
-          //     name: "ravi",
-          //   },
-          // },
-        ],
-      },
-
       offset: offset,
       limit: limit,
-      // order: Object.entries(order),
-      // order: [["id", "ASC"]],
-      // order: [[{ model: User, as: "customer" }, Sequelize.col("name"), "DESC"]],
-      // order: [["customer", "name", "DESC"]],
-      // order: [
-      //   [{ model: User, as: "customer" }, Sequelize.literal("name DESC")],
-      // ],
-      // order: [[{ model: User, as: "customer" }, "name", "ASC"]],
     });
 
     res.status(200).json({ count, skip: offset, page, limit, data: rows });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json(error);
   }
 };
 

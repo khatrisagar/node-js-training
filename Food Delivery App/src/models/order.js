@@ -18,10 +18,22 @@ module.exports = (sequelize, DataTypes) => {
   }
   Order.init(
     {
-      userId: DataTypes.INTEGER,
-      deliveryAgentId: DataTypes.INTEGER,
+      userId: {
+        type: DataTypes.INTEGER,
+        references: "Users",
+        key: "id",
+      },
+      deliveryAgentId: {
+        type: DataTypes.INTEGER,
+        references: "Users",
+        key: "id",
+      },
       userAddress: DataTypes.STRING,
-      paymnentId: DataTypes.INTEGER,
+      paymnentId: {
+        type: DataTypes.INTEGER,
+        references: "paymnentInfos",
+        key: "id",
+      },
     },
     {
       sequelize,
